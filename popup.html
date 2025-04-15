@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Extension</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      width: 350px;
+      height: 500px;
+      margin: 0;
+      padding: 15px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+    }
+    #chat-container {
+      height: 400px;
+      overflow-y: auto;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      padding: 15px;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 15px;
+      word-wrap: break-word;
+      line-height: 1.5;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .message-icon {
+      font-size: 18px;
+      margin-top: 4px;
+    }
+    .sent .message-icon {
+      color: #007AFF;
+    }
+    .received .message-icon {
+      color: #FF2D55;
+    }
+    .message-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+    .message-text {
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .message-text > * {
+      margin: 0;
+      padding: 0;
+      text-align: left !important;
+    }
+    .message-text h1, .message-text h2, .message-text h3 {
+      margin: 8px 0 6px;
+      font-weight: 600;
+      color: #2c3e50;
+      text-align: left !important;
+    }
+    .message-text h1 { font-size: 15px; }
+    .message-text h2 { font-size: 14px; }
+    .message-text h3 { font-size: 13px; }
+    .message-text strong {
+      font-weight: 600;
+      color: #34495e;
+      display: inline;
+    }
+    .message-text em {
+      font-style: italic;
+      color: #34495e;
+      display: inline;
+    }
+    .message-text ul {
+      margin: 10px 0;
+      padding-left: 30px;
+      list-style-position: outside;
+      text-align: left;
+    }
+    .message-text ul li {
+      margin: 10px 0;
+      padding: 0;
+      list-style-type: none;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #34495e;
+      position: relative;
+      padding-left: 20px;
+    }
+    .message-text ul li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #2c3e50;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .message-text ul ul {
+      margin: 0;
+      padding-left: 30px;
+      list-style-type: none;
+    }
+    .message-text ul ul li:before {
+      content: "•";
+      left: 0;
+      color: #34495e;
+      font-size: 15px;
+    }
+    .message-text ol {
+      margin: 6px 0;
+      padding-left: 20px;
+      list-style-type: decimal;
+      text-align: left !important;
+    }
+    .message-text ol ol {
+      margin: 0;
+      padding-left: 20px;
+      text-align: left !important;
+    }
+    .message-text br {
+      display: block;
+      margin: 4px 0;
+    }
+    .message-text p {
+      margin: 6px 0;
+      color: #34495e;
+      text-align: left !important;
+    }
+    .sent {
+      background: #007AFF;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
+    }
+    .received {
+      background: #E5E5EA;
+      color: #333;
+      margin-right: auto;
+      border-bottom-left-radius: 5px;
+    }
+    .system {
+      background: #F0F0F0;
+      text-align: center;
+      font-style: italic;
+      font-size: 13px;
+      color: #666;
+      margin: 10px 20px;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .ai-badge {
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      background: #FF2D55;
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 15px;
+      background: #E5E5EA;
+      border-radius: 15px;
+      margin: 10px 0;
+      max-width: 85%;
+      margin-right: auto;
+    }
+    .typing-indicator .dots {
+      display: flex;
+      gap: 4px;
+    }
+    .typing-indicator .dots span {
+      width: 6px;
+      height: 6px;
+      background: #666;
+      border-radius: 50%;
+      animation: typing 1s infinite;
+    }
+    .typing-indicator .dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-indicator .dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes typing {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .input-container {
+      display: flex;
+      gap: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #E5E5EA;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #message-input:focus {
+      border-color: #007AFF;
+    }
+    .send-button {
+      padding: 10px 20px;
+      background: #007AFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .send-button:hover:not(:disabled) {
+      background: #0056b3;
+      transform: translateY(-1px);
+    }
+    .send-button:disabled {
+      background: #E5E5EA;
+      color: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .connect-button {
+      padding: 10px 20px;
+      background: #007AFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .connect-button:hover:not(:disabled) {
+      background: #0056b3;
+      transform: translateY(-1px);
+    }
+    .connect-button:disabled {
+      background: #E5E5EA;
+      color: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container"></div>
+  <div class="input-container">
+    <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+    <button id="send-button" class="send-button">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+    <button id="connect-button" class="connect-button">Connect</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
